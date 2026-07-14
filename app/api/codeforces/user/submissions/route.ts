@@ -10,7 +10,7 @@ export async function GET() {
       return NextResponse.json({ error: "Codeforces handle not set" }, { status: 401 });
     }
 
-    const res = await fetch(`${requireCodeforcesBaseUrl()}/user.status?handle=${encodeURIComponent(handle)}&from=1&count=25`);
+    const res = await fetch(`${requireCodeforcesBaseUrl()}/user.status?handle=${encodeURIComponent(handle)}&from=1&count=25`, { next: { revalidate: 300 } });
 
     if (!res.ok) {
       return NextResponse.json({ error: "Failed to fetch submissions" }, { status: res.status });

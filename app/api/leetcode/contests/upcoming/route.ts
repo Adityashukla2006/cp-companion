@@ -11,7 +11,7 @@ const getBaseUrl = () => {
 
 export async function GET() {
     try {
-        const res = await fetch(`${getBaseUrl()}/contests/upcoming`);
+        const res = await fetch(`${getBaseUrl()}/contests/upcoming`, { next: { revalidate: 1800 } });
 
         if (!res.ok) {
             return NextResponse.json({ error: "Failed to fetch upcoming contests" }, { status: res.status });

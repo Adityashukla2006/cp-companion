@@ -3,7 +3,7 @@ import { parseJsonResponse, requireCodeforcesBaseUrl } from "@/app/utils/helpers
 
 export async function GET() {
   try {
-    const res = await fetch(`${requireCodeforcesBaseUrl()}/contest.list`);
+    const res = await fetch(`${requireCodeforcesBaseUrl()}/contest.list`, { next: { revalidate: 1800 } });
 
     if (!res.ok) {
       return NextResponse.json({ error: "Failed to fetch contests" }, { status: res.status });

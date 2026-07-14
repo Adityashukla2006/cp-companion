@@ -16,7 +16,7 @@ export async function GET(
     const { username } = await params;
 
     try {
-        const res = await fetch(`${getBaseUrl()}/${username}/submission`);
+        const res = await fetch(`${getBaseUrl()}/${username}/submission`, { next: { revalidate: 300 } });
 
         if (!res.ok) {
             return NextResponse.json({ error: "Failed to fetch submissions" }, { status: res.status });

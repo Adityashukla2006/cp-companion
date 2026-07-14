@@ -11,7 +11,7 @@ const getBaseUrl = () => {
 
 export async function GET() {
     try {
-        const res = await fetch(`${getBaseUrl()}/daily`);
+        const res = await fetch(`${getBaseUrl()}/daily`, { next: { revalidate: 3600 } });
 
         if (!res.ok) {
             return NextResponse.json({ error: "Failed to fetch daily question" }, { status: res.status });

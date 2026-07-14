@@ -7,6 +7,37 @@ import { leetcodeDashboard } from "@/app/services/leetcode";
 import { emptyDashboardState } from "@/app/components/dashboard/constants";
 import type { DashboardState } from "@/app/components/dashboard/types";
 
+/** How long a client-side snapshot stays fresh before we refetch. */
+const CACHE_TTL_MS = 5 * 60 * 1000;
+
+type CachedDashboard = {
+  savedAt: number;
+  data: DashboardState;
+};
+
+const cacheKey = (leetcodeUsername: string, codeforcesUsername: string) =>
+  `cp-dashboard:${leetcodeUsername}:${codeforcesUsername}`;
+
+const readCache = (key: string): CachedDashboard | null => {
+  try {
+    const raw = sessionStorage.getItem(key);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as CachedDashboard;
+    if (!parsed?.data || Date.now() - parsed.savedAt > CACHE_TTL_MS) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+};
+
+const writeCache = (key: string, data: DashboardState) => {
+  try {
+    sessionStorage.setItem(key, JSON.stringify({ savedAt: Date.now(), data }));
+  } catch {
+    // Storage full or unavailable — caching is best-effort.
+  }
+};
+
 export function useDashboardData(leetcodeUsername: string, codeforcesUsername: string) {
   const [data, setData] = useState<DashboardState>(emptyDashboardState);
   const [isLoading, setIsLoading] = useState(true);
@@ -15,6 +46,17 @@ export function useDashboardData(leetcodeUsername: string, codeforcesUsername: s
 
   useEffect(() => {
     let active = true;
+    const key = cacheKey(leetcodeUsername, codeforcesUsername);
+
+    // Manual refresh (refreshToken > 0) always bypasses the client cache.
+    if (refreshToken === 0) {
+      const cached = readCache(key);
+      if (cached) {
+        setData(cached.data);
+        setIsLoading(false);
+        return;
+      }
+    }
 
     Promise.allSettled([
       codeforcesDashboard(codeforcesUsername),
@@ -25,10 +67,15 @@ export function useDashboardData(leetcodeUsername: string, codeforcesUsername: s
       }
 
       const [codeforcesResult, leetcodeResult] = results;
-      setData({
+      const next: DashboardState = {
         codeforces: codeforcesResult.status === "fulfilled" ? codeforcesResult.value : null,
         leetcode: leetcodeResult.status === "fulfilled" ? leetcodeResult.value : null,
-      });
+      };
+      setData(next);
+
+      if (next.codeforces || next.leetcode) {
+        writeCache(key, next);
+      }
 
       const rejected = results.find((result) => result.status === "rejected");
       setError(rejected?.status === "rejected" ? rejected.reason?.message ?? "Some dashboard data could not be loaded." : null);

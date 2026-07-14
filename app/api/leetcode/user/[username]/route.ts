@@ -18,9 +18,9 @@ export async function GET(
     try {
         const baseUrl = getBaseUrl();
         const [profileRes, solvedRes, contestRes] = await Promise.all([
-            fetch(`${baseUrl}/${username}`),
-            fetch(`${baseUrl}/${username}/solved`),
-            fetch(`${baseUrl}/${username}/contest`),
+            fetch(`${baseUrl}/${username}`, { next: { revalidate: 300 } }),
+            fetch(`${baseUrl}/${username}/solved`, { next: { revalidate: 300 } }),
+            fetch(`${baseUrl}/${username}/contest`, { next: { revalidate: 300 } }),
         ]);
 
         if (!profileRes.ok || !solvedRes.ok || !contestRes.ok) {
