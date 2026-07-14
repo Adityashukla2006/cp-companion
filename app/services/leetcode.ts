@@ -115,7 +115,8 @@ const normalizeQuestion = (question: Record<string, unknown>): LeetcodeQuestionS
     acRate: toNumberOrNull(question.acRate),
     topicTags: Array.isArray(question.topicTags) ? toStringArray(question.topicTags) : getTopicNames(question.topicTags),
     problemUrl: typeof question.problemUrl === "string" ? question.problemUrl : `https://leetcode.com/problems/${titleSlug}/`,
-    content: typeof question.content === "string" ? question.content : null,
+    content: typeof question.content === "string" ? question.content : typeof question.description === "string" ? question.description : null,
+    hints: toStringArray(question.hints),
   };
 };
 

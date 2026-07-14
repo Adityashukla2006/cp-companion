@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { leetcodeUrl } from "@/app/utils/helpers";
+import { leetcodeUrl, parseJsonResponse } from "@/app/utils/helpers";
 
 const getBaseUrl = () => {
     if (!leetcodeUrl) {
@@ -17,9 +17,9 @@ export async function GET() {
             return NextResponse.json({ error: "Failed to fetch upcoming contests" }, { status: res.status });
         }
 
-        const data = await res.json();
+        const data = await parseJsonResponse<Record<string, unknown>>(res, `${getBaseUrl()}/contests/upcoming`);
         return NextResponse.json(Array.isArray(data.contests) ? data.contests : []);
-    } catch {
-        return NextResponse.json({ error: "Failed to fetch upcoming contests" }, { status: 500 });
+    } catch (error) {
+        return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to fetch upcoming contests" }, { status: 500 });
     }
 }

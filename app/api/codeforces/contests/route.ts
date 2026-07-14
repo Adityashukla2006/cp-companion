@@ -1,5 +1,5 @@
 ﻿import { NextResponse } from "next/server";
-import { requireCodeforcesBaseUrl } from "@/app/utils/helpers";
+import { parseJsonResponse, requireCodeforcesBaseUrl } from "@/app/utils/helpers";
 
 export async function GET() {
   try {
@@ -9,9 +9,9 @@ export async function GET() {
       return NextResponse.json({ error: "Failed to fetch contests" }, { status: res.status });
     }
 
-    const data = await res.json();
+    const data = await parseJsonResponse<Record<string, unknown>>(res, `${requireCodeforcesBaseUrl()}/contest.list`);
     return NextResponse.json(Array.isArray(data.result) ? data.result : []);
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch contests" }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to fetch contests" }, { status: 500 });
   }
 }

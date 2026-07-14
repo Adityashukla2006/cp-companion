@@ -1,23 +1,40 @@
 import { NextRequest, NextResponse } from "next/server";
+import { parseJsonResponse } from "@/app/utils/helpers";
 
 const GRAPHQL_QUERY = `
-  query SearchQuestion($keyword: String!) {
-    problemsetQuestionList: questionList(
-      categorySlug: "algorithms"
-      limit: 1
-      skip: 0
-      filters: { searchKeywords: $keyword }
-    ) {
-      questions: data {
-        questionFrontendId
-        title
-        titleSlug
-        difficulty
-        acRate
-        topicTags { name slug }
+query SearchQuestion($keyword: String!) {
+  problemsetQuestionList: questionList(
+    categorySlug: "algorithms"
+    limit: 1
+    skip: 0
+    filters: { searchKeywords: $keyword }
+  ) {
+    questions: data {
+      questionId
+      questionFrontendId
+      title
+      titleSlug
+      content
+      difficulty
+      likes
+      dislikes
+      acRate
+      isPaidOnly
+      hints
+      exampleTestcases
+
+      topicTags {
+        name
+        slug
+      }
+
+      codeSnippets {
+        lang
+        code
       }
     }
   }
+}
 `;
 
 export async function GET(req: NextRequest) {
@@ -39,8 +56,11 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Failed to fetch question" }, { status: res.status });
     }
 
-    const data = await res.json();
-    const question = data.data?.problemsetQuestionList?.questions?.[0];
+    const data = await parseJsonResponse<Record<string, unknown>>(res, "https://leetcode.com/graphql");
+    const graphData = data.data && typeof data.data === "object" ? data.data as Record<string, unknown> : {};
+    const questionList = graphData.problemsetQuestionList && typeof graphData.problemsetQuestionList === "object" ? graphData.problemsetQuestionList as Record<string, unknown> : {};
+    const questions = Array.isArray(questionList.questions) ? questionList.questions as Array<Record<string, unknown>> : [];
+    const question = questions[0];
 
     if (!question) {
       return NextResponse.json({ error: "Question not found" }, { status: 404 });
@@ -49,13 +69,19 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       questionId: question.questionFrontendId,
       title: question.title,
-      titleSlug: question.titleSlug,
+      content: question.content,
+      description: question.content,
       difficulty: question.difficulty,
+      hints: question.hints,
       acRate: question.acRate,
-      topicTags: Array.isArray(question.topicTags) ? question.topicTags.map((item: { name: string }) => item.name) : [],
+      topicTags: Array.isArray(question.topicTags)
+        ? question.topicTags
+          .map((item) => typeof item === "object" && item ? (item as { name?: string }).name : null)
+          .filter((name): name is string => Boolean(name))
+        : [],
       problemUrl: `https://leetcode.com/problems/${question.titleSlug}/`,
     });
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch question" }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to fetch question" }, { status: 500 });
   }
 }

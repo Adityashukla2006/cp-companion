@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { leetcodeUrl } from "@/app/utils/helpers";
+import { leetcodeUrl, parseJsonResponse } from "@/app/utils/helpers";
 
 const getBaseUrl = () => {
     if (!leetcodeUrl) {
@@ -17,7 +17,7 @@ export async function GET() {
             return NextResponse.json({ error: "Failed to fetch daily question" }, { status: res.status });
         }
 
-        const data = await res.json();
+        const data = await parseJsonResponse<Record<string, unknown>>(res, `${getBaseUrl()}/daily`);
 
         return NextResponse.json({
             questionLink: data.questionLink,
@@ -25,9 +25,13 @@ export async function GET() {
             questionId: data.questionFrontendId,
             questionTitle: data.questionTitle,
             difficulty: data.difficulty,
-            topics: Array.isArray(data.topicTags) ? data.topicTags.map((tag: { name: string }) => tag.name) : [],
+            topics: Array.isArray(data.topicTags)
+                ? data.topicTags
+                    .map((tag) => typeof tag === "object" && tag ? (tag as { name?: string }).name : null)
+                    .filter((name): name is string => Boolean(name))
+                : [],
         });
-    } catch {
-        return NextResponse.json({ error: "Failed to fetch daily question" }, { status: 500 });
+    } catch (error) {
+        return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to fetch daily question" }, { status: 500 });
     }
 }

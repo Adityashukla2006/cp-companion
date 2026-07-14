@@ -43,3 +43,5 @@ coverage/
 
 # misc
 *.pem
+
+/app/generated/prisma

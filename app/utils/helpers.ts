@@ -99,12 +99,27 @@ export const requireCodeforcesBaseUrl = () => {
 
 export const fetchJson = async <T>(url: string, init?: RequestInit): Promise<T> => {
   const response = await fetch(url, init);
+  const text = await response.text();
 
   if (!response.ok) {
-    throw new Error(`Request failed with status ${response.status}`);
+    throw new Error(`Request failed with status ${response.status}: ${text.slice(0, 180)}`);
   }
 
-  return response.json() as Promise<T>;
+  return parseJsonText<T>(text, url);
+};
+
+export const parseJsonText = <T>(text: string, source: string): T => {
+  try {
+    return JSON.parse(text) as T;
+  } catch {
+    const preview = text.replace(/\s+/g, " ").slice(0, 180);
+    throw new Error(`Expected JSON from ${source}, but received: ${preview}`);
+  }
+};
+
+export const parseJsonResponse = async <T>(response: Response, source = response.url): Promise<T> => {
+  const text = await response.text();
+  return parseJsonText<T>(text, source || "upstream response");
 };
 
 export const toNumberOrNull = (value: unknown): number | null => {

@@ -8,15 +8,13 @@
 } from "../types";
 import { fetchJson, toNumberOrNull } from "@/app/utils/helpers";
 
-export const CODEFORCES_USERNAME = "adityas140";
-
-const normalizeUser = (data: Record<string, unknown> | null): CodeforcesUser | null => {
+const normalizeUser = (data: Record<string, unknown> | null, fallbackHandle: string): CodeforcesUser | null => {
   if (!data) {
     return null;
   }
 
   return {
-    handle: String(data.handle ?? CODEFORCES_USERNAME),
+    handle: String(data.handle ?? fallbackHandle),
     rating: toNumberOrNull(data.rating),
     maxRating: toNumberOrNull(data.maxRating),
     rank: typeof data.rank === "string" ? data.rank : null,
@@ -54,9 +52,9 @@ const normalizeSubmission = (submission: Record<string, unknown>): CodeforcesSub
   verdict: typeof submission.verdict === "string" ? submission.verdict : undefined,
 });
 
-export const codeforcesUser = async (): Promise<CodeforcesUser | null> => {
+export const codeforcesUser = async (fallbackHandle: string): Promise<CodeforcesUser | null> => {
   const data = await fetchJson<Record<string, unknown> | null>("/api/codeforces/user");
-  return normalizeUser(data);
+  return normalizeUser(data, fallbackHandle);
 };
 
 export const codeforcesRatingHistory = async (): Promise<CodeforcesRatingChange[]> => {
@@ -77,9 +75,9 @@ export const codeforcesRecentSubmissions = async (): Promise<CodeforcesSubmissio
   return Array.isArray(data) ? data.map(normalizeSubmission) : [];
 };
 
-export const codeforcesDashboard = async (): Promise<CodeforcesDashboard> => {
+export const codeforcesDashboard = async (username: string): Promise<CodeforcesDashboard> => {
   const [user, ratingHistory, upcomingContests, recentSubmissions] = await Promise.all([
-    codeforcesUser(),
+    codeforcesUser(username),
     codeforcesRatingHistory(),
     codeforcesUpcomingContests(),
     codeforcesRecentSubmissions(),
@@ -92,7 +90,7 @@ export const codeforcesDashboard = async (): Promise<CodeforcesDashboard> => {
   ).size;
 
   return {
-    username: CODEFORCES_USERNAME,
+    username,
     user,
     ratingHistory,
     upcomingContests,

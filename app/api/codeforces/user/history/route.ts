@@ -1,19 +1,24 @@
 ﻿import { NextResponse } from "next/server";
-import { requireCodeforcesBaseUrl } from "@/app/utils/helpers";
-
-const CODEFORCES_HANDLE = "adityas140";
+import { auth } from "@/auth";
+import { parseJsonResponse, requireCodeforcesBaseUrl } from "@/app/utils/helpers";
 
 export async function GET() {
   try {
-    const res = await fetch(`${requireCodeforcesBaseUrl()}/user.rating?handle=${CODEFORCES_HANDLE}`);
+    const session = await auth();
+    const handle = session?.user?.codeforcesUsername;
+    if (!handle) {
+      return NextResponse.json({ error: "Codeforces handle not set" }, { status: 401 });
+    }
+
+    const res = await fetch(`${requireCodeforcesBaseUrl()}/user.rating?handle=${encodeURIComponent(handle)}`);
 
     if (!res.ok) {
       return NextResponse.json({ error: "Failed to fetch user rating" }, { status: res.status });
     }
 
-    const data = await res.json();
+    const data = await parseJsonResponse<Record<string, unknown>>(res, `${requireCodeforcesBaseUrl()}/user.rating`);
     return NextResponse.json(Array.isArray(data.result) ? data.result : []);
-  } catch {
-    return NextResponse.json({ error: "Failed to fetch user rating" }, { status: 500 });
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to fetch user rating" }, { status: 500 });
   }
 }

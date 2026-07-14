@@ -75,6 +75,7 @@ export interface LeetcodeQuestionSearchResult {
   topicTags: string[];
   problemUrl: string;
   content?: string | null;
+  hints?: string[];
 }
 
 export interface LeetcodeDashboard {

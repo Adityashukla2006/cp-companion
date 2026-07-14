@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { leetcodeUrl } from "@/app/utils/helpers";
+import { leetcodeUrl, parseJsonResponse } from "@/app/utils/helpers";
 
 const getBaseUrl = () => {
     if (!leetcodeUrl) {
@@ -28,9 +28,9 @@ export async function GET(
         }
 
         const [profileData, solvedData, contestData] = await Promise.all([
-            profileRes.json(),
-            solvedRes.json(),
-            contestRes.json(),
+            parseJsonResponse<Record<string, unknown>>(profileRes, `${baseUrl}/${username}`),
+            parseJsonResponse<Record<string, unknown>>(solvedRes, `${baseUrl}/${username}/solved`),
+            parseJsonResponse<Record<string, unknown>>(contestRes, `${baseUrl}/${username}/contest`),
         ]);
 
         return NextResponse.json({
@@ -52,7 +52,7 @@ export async function GET(
                 hardSolved: solvedData.hardSolved,
             },
         });
-    } catch {
-        return NextResponse.json({ error: "Failed to fetch user data" }, { status: 500 });
+    } catch (error) {
+        return NextResponse.json({ error: error instanceof Error ? error.message : "Failed to fetch user data" }, { status: 500 });
     }
 }
