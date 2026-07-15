@@ -44,6 +44,7 @@ export async function GET(
                 contestGlobalRanking: contestData.contestGlobalRanking,
                 contestAttend: contestData.contestAttend,
                 contestBadges: contestData.contestBadges,
+                contestParticipation: contestData.contestParticipation,
             },
             problemStats: {
                 solvedProblem: solvedData.solvedProblem,

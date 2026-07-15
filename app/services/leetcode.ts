@@ -1,6 +1,7 @@
 ﻿import {
   LeetcodeActivityDay,
   LeetcodeContest,
+  LeetcodeContestHistoryEntry,
   LeetcodeDashboard,
   LeetcodeDailyQuestion,
   LeetcodeProfile,
@@ -40,6 +41,29 @@ const buildActivity = (submissions: LeetcodeSubmission[]): LeetcodeActivityDay[]
     .sort((a, b) => a.date.localeCompare(b.date));
 };
 
+const normalizeContestHistory = (value: unknown): LeetcodeContestHistoryEntry[] => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .filter((entry): entry is Record<string, unknown> => Boolean(entry) && typeof entry === "object")
+    .filter((entry) => entry.attended !== false)
+    .map((entry) => {
+      const contest = entry.contest && typeof entry.contest === "object" ? entry.contest as Record<string, unknown> : {};
+      return {
+        title: typeof contest.title === "string" ? contest.title : "",
+        startTime: toNumberOrNull(contest.startTime),
+        rating: toNumberOrNull(entry.rating),
+        ranking: toNumberOrNull(entry.ranking),
+        problemsSolved: toNumberOrNull(entry.problemsSolved),
+        totalProblems: toNumberOrNull(entry.totalProblems),
+      };
+    })
+    .filter((entry) => entry.rating !== null)
+    .sort((a, b) => (a.startTime ?? 0) - (b.startTime ?? 0));
+};
+
 export const leetcodeUserData = async (username: string): Promise<LeetcodeProfile> => {
   const data = await fetchJson<Record<string, unknown>>(`/api/leetcode/user/${encodeURIComponent(username)}`);
   const contestData = data.contest && typeof data.contest === "object" ? data.contest as Record<string, unknown> : {};
@@ -56,6 +80,7 @@ export const leetcodeUserData = async (username: string): Promise<LeetcodeProfil
       contestGlobalRanking: toNumberOrNull(contestData.contestGlobalRanking),
       contestAttend: toNumberOrNull(contestData.contestAttend),
       contestBadges: toStringArray(contestData.contestBadges),
+      contestHistory: normalizeContestHistory(contestData.contestParticipation),
     },
     problemStats: {
       solvedProblem: toNumberOrNull(solvedData.solvedProblem),

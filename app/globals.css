@@ -560,8 +560,67 @@ button { border: 0; background: none; cursor: pointer; }
    ============================================================ */
 .chart-wrap { width: 100%; }
 .recharts-default-tooltip { border-radius: 14px !important; }
-.chart-legend { display: flex; gap: 16px; margin-top: 14px; font-size: 12px; color: var(--text-muted); }
+.chart-legend { display: flex; gap: 16px; margin-top: 14px; font-size: 12px; color: var(--text-muted); flex-wrap: wrap; align-items: center; }
 .chart-legend b { color: var(--text); font-family: var(--font-mono); }
+.legend-dot { display: inline-flex; align-items: center; gap: 7px; }
+.legend-dot::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--dot, var(--accent)); }
+.insight-line {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12.5px; color: var(--accent-ink); font-weight: 500;
+  padding: 10px 13px; border-radius: 11px;
+  background: var(--accent-soft);
+}
+.insight-line svg { flex-shrink: 0; }
+.panel-action.warn { color: var(--warn); }
+
+/* Analysis: section dividers */
+.sect-head { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+.sect-head h2 { font-family: var(--font-display); font-size: 18px; letter-spacing: -0.02em; }
+
+/* Analysis: readiness hero */
+.readiness {
+  display: grid; grid-template-columns: auto 1fr; gap: clamp(20px, 4vw, 44px);
+  align-items: center; padding: clamp(20px, 3vw, 30px);
+}
+.readiness-score { display: flex; align-items: center; gap: 20px; }
+.score-ring {
+  width: 118px; height: 118px; border-radius: 50%; flex-shrink: 0;
+  display: grid; place-items: center; position: relative;
+  background: conic-gradient(var(--accent) var(--fill, 0deg), var(--surface-inset) 0deg);
+}
+.score-ring::before {
+  content: ""; position: absolute; inset: 11px; border-radius: 50%;
+  background: var(--surface);
+}
+.score-val { position: relative; font-family: var(--font-display); font-weight: 600; font-size: 34px; letter-spacing: -0.03em; }
+.score-meta h2 { font-family: var(--font-display); font-size: 20px; letter-spacing: -0.02em; margin-bottom: 6px; }
+.score-meta p { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-soft); }
+.score-meta p b { color: var(--text); font-family: var(--font-mono); }
+.readiness-factors { min-width: 0; }
+@media (max-width: 900px) {
+  .readiness { grid-template-columns: 1fr; }
+}
+
+/* Analysis: practice recommendations */
+.rec-wrap { display: flex; flex-direction: column; gap: 14px; }
+.rec-intro { font-size: 12.5px; color: var(--text-soft); }
+.rec-intro b { color: var(--text); }
+.rec-list { display: flex; flex-direction: column; }
+.rec-row {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 4px; border-bottom: 1px solid var(--hairline);
+  transition: background 0.15s, transform 0.15s;
+}
+.rec-row:last-child { border-bottom: 0; }
+.rec-row:hover { background: var(--surface-inset); border-radius: 10px; transform: translateX(2px); }
+.rec-rating {
+  font-family: var(--font-mono); font-size: 12px; font-weight: 700;
+  color: var(--accent-ink); background: var(--accent-soft);
+  padding: 3px 9px; border-radius: 999px; flex-shrink: 0;
+}
+.rec-name { font-size: 13.5px; font-weight: 500; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rec-tags { margin-left: auto; font-size: 11px; color: var(--text-muted); flex-shrink: 0; }
+.rec-go { color: var(--text-muted); flex-shrink: 0; }
 
 /* Activity heatmap */
 .heat { display: flex; flex-direction: column; gap: 12px; }
@@ -720,6 +779,7 @@ a.feed-row:hover .feed-go { color: var(--accent-ink); transform: translate(2px, 
 /* Difficulty breakdown bars */
 .bar-list { display: flex; flex-direction: column; gap: 14px; }
 .bar-row { display: grid; grid-template-columns: 64px 1fr 48px; align-items: center; gap: 12px; }
+.bar-row.wide-label { grid-template-columns: 110px 1fr 48px; }
 .bar-label { font-size: 12.5px; font-weight: 600; color: var(--text-soft); }
 .bar-track { height: 10px; border-radius: 999px; background: var(--surface-inset); overflow: hidden; }
 .bar-fill { height: 100%; border-radius: inherit; transition: width 0.8s cubic-bezier(0.22,1,0.36,1); }

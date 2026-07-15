@@ -49,7 +49,9 @@ export function DashboardHome({
       )}
       {activeTab === "leetcode" && <LeetCodeSection data={data} isLoading={isLoading} />}
       {activeTab === "codeforces" && <CodeforcesSection data={data} isLoading={isLoading} />}
-      {activeTab === "analysis" && <AnalysisSection />}
+      {activeTab === "analysis" && (
+        <AnalysisSection data={data} contests={contests} isLoading={isLoading} nowSeconds={nowSeconds} />
+      )}
       {activeTab === "profile" && <ProfileSection data={data} isLoading={isLoading} />}
     </AppShell>
   );

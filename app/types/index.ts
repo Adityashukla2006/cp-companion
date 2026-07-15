@@ -11,11 +11,21 @@ export interface RawSubmission {
   lang?: string;
 }
 
+export interface LeetcodeContestHistoryEntry {
+  title: string;
+  startTime: number | null;
+  rating: number | null;
+  ranking: number | null;
+  problemsSolved: number | null;
+  totalProblems: number | null;
+}
+
 export interface LeetcodeContestStats {
   contestAttend: number | null;
   contestRating: number | null;
   contestBadges: string[];
   contestGlobalRanking: number | null;
+  contestHistory: LeetcodeContestHistoryEntry[];
 }
 
 export interface LeetcodeStats {
